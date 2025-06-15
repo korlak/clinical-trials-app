@@ -1,72 +1,93 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchStudiesQuery } from '../redux/studiesApi'
 import StudiesList from './StudiesList'
 
 export default function StudiesSearchContainer() {
     const [filters, setFilters] = useState({ nctId: '', briefTitle: '', condition: '' })
     const [pageToken, setPageToken] = useState<string | undefined>(undefined)
+    const [totalCount, setTotalCount] = useState<string | undefined>(undefined)
+    const [allStudies, setAllStudies] = useState<any[]>([])
+
     const { data, isLoading, error } = useSearchStudiesQuery({
         nctId: filters.nctId || undefined,
         briefTitle: filters.briefTitle || undefined,
         condition: filters.condition || undefined,
         pageToken
     })
-    const [onlyBriefTitle, setOnlyBriefTitle] = useState(false);
+
     const nextPageToken = data?.nextPageToken
+
+    useEffect(() => {
+        if (typeof data?.totalCount === 'number') {
+            setTotalCount(data.totalCount)
+        }
+    }, [data?.totalCount])
+
+    useEffect(() => {
+        if (data?.studies) {
+            setAllStudies(prev => {
+                const existingIds = new Set(prev.map(s => s.protocolSection?.identificationModule?.nctId))
+                const newUniqueStudies = data.studies.filter((study: any) => {
+                    const id = study.protocolSection?.identificationModule?.nctId;
+                    return !existingIds.has(id);
+                });
+                return pageToken ? [...prev, ...newUniqueStudies] : [...newUniqueStudies]
+            })
+        }
+    }, [data?.studies, pageToken])
+
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        const formData = new FormData(e.currentTarget)
+        setFilters({
+            nctId: formData.get('nctId') as string,
+            briefTitle: formData.get('briefTitle') as string,
+            condition: formData.get('condition') as string,
+        })
+        setPageToken(undefined)
+        setAllStudies([])
+    }
 
     return (
         <>
-            <input
-                type="text"
-                placeholder="NCD Title"
-                value={filters.nctId}
-                onChange={e => setFilters(f => ({ ...f, nctId: e.target.value }))}
-                className="border p-2 rounded mr-2"
-            />
-            <input
-                type="text"
-                placeholder="Brief Title"
-                value={filters.briefTitle}
-                onChange={e => setFilters(f => ({ ...f, briefTitle: e.target.value }))}
-                className="border p-2 rounded mr-2"
-            />
-            <input
-                type="text"
-                placeholder="Condition"
-                value={filters.condition}
-                onChange={e => setFilters(f => ({ ...f, condition: e.target.value }))}
-                className="border p-2 rounded mr-2"
-            />
+            <form
+                onSubmit={handleSubmit}
+                className="mb-4 flex flex-wrap gap-2 items-center justify-center border rounded p-2 w-fit"
+            >
+                <div className='flex flex-col gap-2'>
+                    <div className='flex flex-row gap-1 text-xl text-gray-600'>
+                        Condiotion
+                    </div>
+                    <input
+                        placeholder='e.g. Respiratory Diseases'
+                        type="text"
+                        name="condition"
+                        defaultValue={filters.condition}
+                        className="w-full h-10 text-[16px] placeholder:text-[16px] px-4 py-2.5 border border-[#515151] rounded-[10px] focus:outline-none"
+                    />
+                    <button
+                        type="submit"
+                        className="px-4 py-2 bg-cyan-800 text-white rounded"
+                    >
+                        Search
+                    </button>
+                    {!isLoading && <p>Results: {totalCount}</p>}
+                </div>
+                {isLoading && <p>Loading...</p>}
+                {error && <p>Error loading studies.</p>}
+            </form>
 
-            <label className="flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    checked={onlyBriefTitle}
-                    onChange={(e) => setOnlyBriefTitle(e.target.checked)}
-                />
-                <span>Шукати тільки в заголовку</span>
-            </label>
+            <StudiesList studies={allStudies} />
+
             {nextPageToken && (
                 <button
                     className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
                     onClick={() => setPageToken(nextPageToken)}
                 >
-                    Наступна сторінка
+                    Load More
                 </button>
             )}
-            {pageToken && (
-                <button
-                    className="mt-4 ml-2 px-4 py-2 bg-gray-400 text-white rounded"
-                    onClick={() => setPageToken(undefined)}
-                >
-                    Перша сторінка
-                </button>
-            )}
-            {isLoading && <p>Завантаження...</p>}
-            {error && <p></p>}
-            <StudiesList studies={data?.studies || []} />
-
         </>
     )
 }

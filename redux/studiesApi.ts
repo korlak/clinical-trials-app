@@ -22,7 +22,7 @@ export const studiesApi = createApi({
           'protocolSection.identificationModule.briefTitle',
           'protocolSection.conditionsModule.conditions'
         ].join(','));
-        params.append('pageSize', '10');
+        params.append('pageSize', '5');
         if (pageToken) params.append('pageToken', pageToken);
         return `studies?${params.toString()}`;
       },
