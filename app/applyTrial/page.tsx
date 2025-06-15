@@ -1,7 +1,8 @@
 import TrialForm from './TrialForm'
 
-export default async function FormPage({ searchParams }: { searchParams: { nctId?: string } }) {
-  const nctId = searchParams?.nctId
+export default async function FormPage({ searchParams }: { searchParams: any }) {
+  const params = await searchParams
+  const nctId = typeof params.nctId === 'string' ? params.nctId : undefined
 
   let exists = false
   if (nctId) {
@@ -10,7 +11,7 @@ export default async function FormPage({ searchParams }: { searchParams: { nctId
   }
 
   if (!nctId || !exists) {
-    return <div className="text-red-600 text-center mt-10">Дослідження з таким NCT ID не знайдено</div>
+    return <div className="text-red-600 text-center mt-10">No study with this NCT ID found</div>
   }
 
   return <TrialForm nctId={nctId} />
