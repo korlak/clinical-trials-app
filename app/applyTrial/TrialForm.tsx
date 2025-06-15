@@ -1,5 +1,4 @@
 'use client'
-import Link from 'next/link'
 import { useState } from 'react'
 
 export default function TrialForm({ nctId }: { nctId?: string }) {
@@ -58,8 +57,6 @@ Thank you for considering my interest!`
 
   return (
     <>
-      <Link href="/" className='text-xl text-gray-500'>Go back</Link>
-
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           Заявка на участь у дослідженні

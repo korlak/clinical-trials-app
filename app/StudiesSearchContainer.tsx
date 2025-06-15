@@ -25,69 +25,76 @@ export default function StudiesSearchContainer() {
     }, [data?.totalCount])
 
     useEffect(() => {
-        if (data?.studies) {
-            setAllStudies(prev => {
-                const existingIds = new Set(prev.map(s => s.protocolSection?.identificationModule?.nctId))
-                const newUniqueStudies = data.studies.filter((study: any) => {
-                    const id = study.protocolSection?.identificationModule?.nctId;
-                    return !existingIds.has(id);
-                });
-                return pageToken ? [...prev, ...newUniqueStudies] : [...newUniqueStudies]
-            })
+        if (!data?.studies) {
+            if (!pageToken) {
+                setAllStudies([])
+            }
+            return
         }
+
+        setAllStudies(prev => {
+            const existingIds = new Set(prev.map(s => s.protocolSection?.identificationModule?.nctId))
+            const newUniqueStudies = data.studies.filter((study: any) => {
+                const id = study.protocolSection?.identificationModule?.nctId;
+                return !existingIds.has(id);
+            })
+            return pageToken ? [...prev, ...newUniqueStudies] : [...newUniqueStudies]
+        })
     }, [data?.studies, pageToken])
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
+        if (!data?.studies) setAllStudies([])
+        setPageToken(undefined)
         setFilters({
             nctId: formData.get('nctId') as string,
             briefTitle: formData.get('briefTitle') as string,
             condition: formData.get('condition') as string,
         })
-        setPageToken(undefined)
-        setAllStudies([])
     }
 
     return (
-        <>
+        <div className="flex flex-col items-center justify-center px-4 py-6 max-w-4xl mx-auto">
             <form
                 onSubmit={handleSubmit}
-                className="mb-4 flex flex-wrap gap-2 items-center justify-center border rounded p-2 w-fit"
+                className="w-full max-w-md mb-6 p-4 border rounded-lg bg-white shadow-md"
             >
-                <div className='flex flex-col gap-2'>
-                    <div className='flex flex-row gap-1 text-xl text-gray-600'>
-                        Condiotion
-                    </div>
+                <div className='flex flex-col gap-4'>
+                    <label className="text-lg text-gray-700 font-semibold">
+                        Condition
+                    </label>
                     <input
                         placeholder='e.g. Respiratory Diseases'
                         type="text"
                         name="condition"
                         defaultValue={filters.condition}
-                        className="w-full h-10 text-[16px] placeholder:text-[16px] px-4 py-2.5 border border-[#515151] rounded-[10px] focus:outline-none"
+                        className="h-10 text-base placeholder:text-base px-4 py-2 border border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                     <button
                         type="submit"
-                        className="px-4 py-2 bg-cyan-800 text-white rounded"
+                        className="w-full py-2 bg-cyan-800 text-white font-semibold rounded hover:bg-cyan-700 transition"
                     >
                         Search
                     </button>
-                    {!isLoading && <p>Results: {totalCount}</p>}
+                    {!isLoading && <p className="text-center text-sm text-gray-500">Results: {totalCount}</p>}
+                    {isLoading && <p className="text-center text-sm text-blue-500">Loading...</p>}
+                    {error && <p className="text-center text-sm text-red-500">Error loading studies.</p>}
                 </div>
-                {isLoading && <p>Loading...</p>}
-                {error && <p>Error loading studies.</p>}
             </form>
 
-            <StudiesList studies={allStudies} />
+            <div className="w-full flex justify-center">
+                <StudiesList studies={allStudies} />
+            </div>
 
             {nextPageToken && (
                 <button
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+                    className="mt-6 px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-500 transition"
                     onClick={() => setPageToken(nextPageToken)}
                 >
                     Load More
                 </button>
             )}
-        </>
+        </div>
     )
 }
