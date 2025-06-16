@@ -106,7 +106,7 @@ Thank you for considering my interest!`
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="+380XXXXXXXXX"
+            placeholder="+1XXXXXXXXX"
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>

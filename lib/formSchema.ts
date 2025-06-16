@@ -5,7 +5,7 @@ export const formSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   phone: z
     .string()
-    .regex(/^\+380\d{9}$/, 'Phone number must be in +380XXXXXXXXX format'),
+    .regex(/^\+1\d{9}$/, 'Phone number must be in +1XXXXXXXXX format'),
   email: z.string().email('Invalid email address'),
   nctId: z.string().min(1),
   agree: z.literal(true, {
